@@ -1,0 +1,32 @@
+# build output
+build/
+.gradle/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.ipr
+*.iws
+
+# OS
+Thumbs.db
+.DS_Store
+
+# generated at runtime by the FunASR launcher / offline model downloader
+logs/
+models/
+__pycache__/
+*.pyc
+funasr-runtime/
+launcher-trace.txt
+funasr-server.log
+funasr-server.pid
+funasr-server.owner
+funasr.status
+funasr-python.txt
+.deps-ok
+
+# scratch directory used while developing
+.dsh-tmp/

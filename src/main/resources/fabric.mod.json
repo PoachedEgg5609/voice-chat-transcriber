@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "voice_chat_transcriber",
+  "version": "${version}",
+  "name": "语音转文字聊天 / Voice Chat Transcriber",
+  "description": "Client-only push-to-talk speech transcription for the chat box: offline Vosk, any OpenAI-compatible endpoint, iFLYTEK streaming IAT, or a local FunASR service.",
+  "authors": ["PoachedEgg5609"],
+  "contact": {
+    "homepage": "https://github.com/PoachedEgg5609/voice-chat-transcriber",
+    "sources": "https://github.com/PoachedEgg5609/voice-chat-transcriber",
+    "issues": "https://github.com/PoachedEgg5609/voice-chat-transcriber/issues"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["cn.codex.voicetext.client.VoiceChatTranscriberClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.2",
+    "minecraft": "26.1.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,111 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+base { archivesName = project.archives_base_name }
+
+loom {
+	splitEnvironmentSourceSets()
+	mods {
+		"voice_chat_transcriber" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	implementation "com.alphacephei:vosk:0.3.45"
+	implementation "net.java.dev.jna:jna:5.17.0"
+	include "com.alphacephei:vosk:0.3.45"
+}
+
+sourceSets {
+	logicTest {
+		java.srcDir "src/logicTest/java"
+		compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+		runtimeClasspath += output + compileClasspath + sourceSets.main.runtimeClasspath
+	}
+	offlineSmoke {
+		java.srcDir "src/offlineSmoke/java"
+		compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+		runtimeClasspath += output + sourceSets.main.output + sourceSets.main.runtimeClasspath
+	}
+}
+
+configurations.offlineSmokeImplementation.extendsFrom configurations.implementation
+
+tasks.register("logicTest", JavaExec) {
+	dependsOn tasks.named("logicTestClasses")
+	classpath = sourceSets.logicTest.runtimeClasspath
+	mainClass = "cn.codex.voicetext.AudioFormatRegressionSuite"
+}
+
+tasks.register("iflytekProtocolTest", JavaExec) {
+	dependsOn tasks.named("logicTestClasses")
+	classpath = sourceSets.logicTest.runtimeClasspath
+	mainClass = "cn.codex.voicetext.IflytekProtocolRegressionSuite"
+}
+
+tasks.register("offlineEngineSmokeTest", JavaExec) {
+	dependsOn tasks.named("offlineSmokeClasses")
+	classpath = sourceSets.offlineSmoke.runtimeClasspath
+	mainClass = "cn.codex.voicetext.OfflineEngineSmokeTest"
+	doFirst {
+		if (!project.hasProperty("offlineModelPath")) {
+			throw new GradleException("Use -PofflineModelPath=<extracted Vosk model directory>")
+		}
+		args project.property("offlineModelPath")
+	}
+}
+
+tasks.register("jnaEncodingRegressionTest", JavaExec) {
+	dependsOn tasks.named("offlineSmokeClasses")
+	classpath = sourceSets.offlineSmoke.runtimeClasspath
+	mainClass = "cn.codex.voicetext.JnaEncodingRegressionTest"
+	jvmArgs "-Djna.encoding=GBK"
+}
+
+tasks.register("iflytekHandshakeSmokeTest", JavaExec) {
+	dependsOn tasks.named("offlineSmokeClasses")
+	classpath = sourceSets.offlineSmoke.runtimeClasspath
+	mainClass = "cn.codex.voicetext.IflytekHandshakeSmokeTest"
+	doFirst {
+		if (!project.hasProperty("iflytekConfigPath")) {
+			throw new GradleException("Use -PiflytekConfigPath=<voice-chat-transcriber.json>")
+		}
+		args project.property("iflytekConfigPath")
+	}
+}
+
+tasks.named("check") {
+	dependsOn tasks.named("logicTest")
+	dependsOn tasks.named("iflytekProtocolTest")
+}
+
+processResources {
+	inputs.property "version", project.version
+	filesMatching("fabric.mod.json") { expand "version": project.version }
+	from("THIRD_PARTY_NOTICES.md") { into "META-INF" }
+	// Bundled so the client can extract and run them on demand: shipping the launcher
+	// plus the service it starts is what makes a fresh machine work with no manual
+	// file placement. Extracted to <config>/voice-chat-transcriber/ by FunasrLauncher.
+	from("start-funasr.ps1") { into "funasr" }
+	from("funasr_server.py") { into "funasr" }
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = "UTF-8"
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}

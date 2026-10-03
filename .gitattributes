@@ -1,0 +1,10 @@
+# start-funasr.ps1 is extracted from the jar and run directly, and it intentionally carries
+# a UTF-8 BOM (Windows PowerShell 5.1 needs it to read the Chinese comments correctly).
+# Only line endings are normalised here; nothing rewrites the file's encoding.
+*.ps1    text eol=crlf
+*.java   text eol=lf
+*.gradle text eol=lf
+*.json   text eol=lf
+*.md     text eol=lf
+*.py     text eol=lf
+*.properties text eol=lf
