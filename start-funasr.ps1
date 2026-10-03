@@ -271,7 +271,9 @@ function Resolve-SystemPython {
         }
         # 版本过新同样是问题：还没有对应的预编译包时，pip 会尝试从源码构建并失败。
         # 这里不预先判定（取决于各项目的发布节奏），而是记录版本，让 pip 阶段如实报错。
-        if ($version -gt [version]$TestedUpTo) {
+        # 只比 主.次：否则 3.14.0 会被判成“高于 3.14”而误报（实测踩到过）。
+        $featureVersion = [version]"$($Matches[1]).$($Matches[2])"
+        if ($featureVersion -gt [version]$TestedUpTo) {
             Write-Trace "python $version 高于实测过的 $TestedUpTo，依赖可能没有对应预编译包"
             Write-Step "注意：Python $version 高于本次实测过的 $TestedUpTo，若依赖安装失败请改用 $MinimumPython–$TestedUpTo"
         }
